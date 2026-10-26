@@ -1,0 +1,62 @@
+Claude
+I like VisualCV. Idea is to have a platform where people can log their significant activities they’re doing on their work and build a online resume over the time. Eliminate pdf resume completely and have a html version of interactive nice and easy resume specifically making easier to edit when tailoring specific to job. They should be able to send a link or a qr when applying. And eventually building a network of professionals and companies and removing a barrier of applying a job. At tge moment there might be roles great fit for me but I don’t know neither employer. So i wanted to make poaching easier so employers find right individuals and so does employees. But initially just have a really easy interactive resume builder easily accessible online and super simple to modify to tailor. Finding a right talent and employer can’t be this hard. Lets think process, ui and user experience how we can have a simple resume maker and sharing platform for now. Much like canva but simpler thAn tgat
+Updated memory resume-platform.md
+The key idea is to separate your content from your presentation. Your career is a bank of logged activities, and each resume is just a tailored view of that bank. This is what makes tailoring fast and sets you apart from VisualCV and Canva.
+The core flow
+Log: Capture a win in 30 seconds with one line, an optional metric, and a few skill tags. Weekly nudges keep the bank fresh, and AI can polish the wording.
+Compose: A “version” is a selection and ordering of items from your bank, plus a headline and summary. Tailoring means toggling items on or off, dragging to reorder, and tweaking wording. Pasting a job ad could have AI suggest which items to surface, with you approving every change.
+Share: Each version gets its own link (e.g. name.app/company-role) and a QR code. Add view tracking so you know when someone opened it.
+UI principles (simpler than Canva)
+Blocks, not a free canvas. Users never drag pixels around. Two or three strong templates handle layout.
+Edit in place. You click text on the live resume and type. The side panel only holds visibility toggles and ordering.
+“Duplicate for this job” in one tap. Versions must be nearly free to create.
+Mobile-first. People apply from their phones, and QR sharing happens in person.
+Interactive depth. Items expand to show detail, proof links, and projects, which a PDF can’t do.
+Two honest cautions
+Many applicant tracking systems still demand a file upload, so keep a quiet “export PDF” escape hatch until links become normal. Eliminating PDFs is the destination, not day one.
+Give every link privacy controls: hidden contact details, expiry, and a revoke option.
+MVP scope: Login, activity log, versions, 2–3 templates, link and QR, and view analytics. Skip the network for now. The resume tool is the single-player value that later seeds the talent network, where candidates opt in to being discoverable and employers search structured data instead of keyword-matching PDFs.
+Do you want me to sketch the main editor screen or the log-to-version flow visually next?
+Sketch main editor
+Thought for 32s
+
+Try the eye toggles and the plus buttons, since both work. Here’s what each numbered part does:
+Version bar and job ad strip. Every resume is a named version of your master profile. Pasting a job ad would rank your logged items by fit, and you’d approve each suggestion.
+Edit in place. You tap any line on the resume itself to select it. A small toolbar appears for reword, shorten, and move. There’s no separate form view.
+Hide, don’t delete. The eye icon removes an item from this version only. It stays in your master bank for other applications.
+Suggestions from your log. This connects the activity log to tailoring. One tap on plus pulls a relevant past win into this version.
+Bottom bar. Log is the quick-capture entry point, Items is the full bank, Style switches between the 2–3 templates, and Share opens the link and QR sheet.
+The screen has no toolbars, rulers, or free-drag canvas. Everything you can do is selecting, toggling, reordering, or rewording.
+Should I sketch the quick-capture Log screen next, or the share sheet with link, QR, and view tracking?
+Lets plan a build a real app start with ios. I have mac air 2021 model.  An claude help completly of now lets have other ai tool to build but i like idea of logging and tailoring on above image
+Searched the web, updated memory, and 2 more tools
+I’d build it with Expo (React Native and TypeScript) rather than native Swift. You already work in TypeScript and Next.js, so you can read and fix what the AI tools generate, and the same code can reach Android and web later.
+The shared resume has to be a web page, so the product is really three parts:
+iOS app (Expo): log, versions, and the editor from the mockup.
+Backend (Supabase): database, login, and storage.
+Public page (Next.js on Vercel): renders each version at its link, with a link preview and view counting.
+Your Mac and costs
+Your Air should be fine. Apps uploaded to App Store Connect must be built with Xcode 26 or later, so update macOS to a version that Xcode 26 supports. 
+apple
+If you use Expo’s cloud builds, the default build image for Expo SDK 54 and 55 already uses Xcode 26, so you’ll rarely fight local setup. 
+expo
+Testing on your own iPhone is free. TestFlight and the App Store need the Apple Developer Program, which is $99 per year. 
+adalo
+Build order
+Write the spec and data model: Activity, Profile, Version, and ViewEvent.
+Build the log and master profile, with the quick-capture screen first.
+Build versions and the editor with toggles, reordering, and reword.
+Add the public link, QR code, and view count.
+Run TestFlight with about 10 job seekers. Then add the AI features (reword and job-ad matching) through your backend, so API keys never sit inside the app.
+Submit to the App Store.
+Whichever AI builder you pick, it will do far better with a written spec than with “build me a resume app.” I can draft a one-page build spec covering the data model, screens, and the first prompts to paste into your tool. You’ll also want an iPhone to test on, since the simulator can’t do everything.
+Want me to write that spec next?
+Yea please
+Make doc changes (batch)
+
+Resume app: build spec v0.1
+Claude Docs·Only you 
+The build spec is ready: read it over, edit inline, or comment. The last section has four starter prompts to paste into your AI tool, one milestone per session. When you’re ready, I can write the quick-capture Log screen spec in more detail.
+
+
+Claude is AI and can make mistakes. Please double-check responses.

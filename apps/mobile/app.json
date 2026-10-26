@@ -1,0 +1,1 @@
+{"expo":{"name":"Resume App · Local Demo","slug":"resume-app-local","scheme":"resume-local","version":"0.1.0","orientation":"portrait","userInterfaceStyle":"light","ios":{"supportsTablet":true,"bundleIdentifier":"com.example.resumeapp.local"},"web":{"bundler":"metro","output":"single"},"plugins":["expo-router"]}}

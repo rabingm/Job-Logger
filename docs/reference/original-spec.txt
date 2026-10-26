@@ -1,0 +1,62 @@
+Resume app: build spec v0.1
+Draft for use with an AI coding tool · 22 October 2026
+Goal
+A mobile app where people log what they achieve at work as it happens, then assemble tailored resume versions in minutes and share each one as a link or QR code. No PDF needed. Later: a network connecting candidates and employers. v1 is only the log, the tailoring, and the sharing.
+Principles
+• Content is separate from presentation. Log once, tailor many times.
+• Blocks, not a free canvas. People select, toggle, reorder, and reword. They never drag pixels.
+• Edit in place on the live resume. The side controls only hold visibility and order.
+• Hide, never delete. Hiding an item affects one version only.
+• AI suggests, the user approves. Nothing is rewritten or added automatically.
+Stack
+• Mobile app: Expo (React Native), TypeScript, Expo Router.
+• Backend: Supabase (Postgres, Auth, Storage, Row Level Security).
+• Public resume page: Next.js on Vercel, server-rendered.
+• AI calls: Supabase Edge Function, so no API keys ever ship inside the app.
+• Repo: monorepo with apps/mobile, apps/web, and packages/resume-core (shared types and the resolveVersion() function that turns a version into final resume data).
+Data model
+• profiles: id (same as auth user), full_name, headline, public_email, location, slug (unique), created_at.
+• roles: id, user_id, employer, title, start_date, end_date (nullable), sort_order.
+• activities: id, user_id, role_id (nullable), text, metric (nullable), happened_on, tags (text array), archived (boolean), created_at. This is the master bank. Master wording lives here.
+• versions: id, user_id, name, slug, template_id, headline_override, summary, is_published, hide_contact, expires_at (nullable), created_at, updated_at.
+• version_items: id, version_id, activity_id, sort_order, visible (boolean), text_override (nullable). Per-version selection, order, and wording.
+• view_events: id, version_id, viewed_at, referrer (nullable), country (nullable). No other visitor data.
+Rules: row-level security so users only read and write their own rows. The public page reads only published, unexpired versions through a server endpoint. Editing wording in a version sets text_override and never changes the master activity.
+Screens for v1
+1. Sign in: Sign in with Apple and email.
+2. Home: list of versions, plus New version (start from master or duplicate an existing version).
+3. Log: quick capture. One text field, optional metric, tags, optional role. Must be saveable in under 30 seconds. Optional weekly local reminder.
+4. Items bank: search and filter by tag and role, edit, archive.
+5. Editor: version switcher at the top, the resume rendered with tap-to-edit text, an eye toggle on every item, drag to reorder, a toolbar on the selected item (Reword, Shorten, Move), a From your log strip with plus buttons for suggested items, and a bottom bar with Log, Items, Style, and Share.
+6. Share sheet: link, copy, QR code, view count, hide-contact toggle, expiry date, revoke link.
+7. Settings: profile, slug, and in-app account deletion (the App Store requires this for apps that create accounts).
+Public resume page
+• Route: /{profile_slug}/{version_slug}.
+• Server-rendered, mobile-first, supports dark mode.
+• Two templates at launch: Clean (single column) and Modern (header band plus skills sidebar). Both receive the same resolved data shape.
+• Link preview image for messaging apps and LinkedIn.
+• Not indexed by search engines by default, with an opt-in toggle.
+• Logs a view event on the server. Respects hide-contact, expiry, and revoke (return 404 or 410).
+• A small Download PDF link using a print stylesheet, as a fallback for application systems that demand a file.
+AI features (after the core works)
+• Reword and shorten: send one item (and optionally a job ad) to the edge function, get three options back, user taps one to accept.
+• Job ad match: user pastes an ad, the function ranks activities with a one-line reason each, user taps to add.
+• Guardrails: never invent facts, keep numbers exactly as written, rate-limit per user, always show the original beside the suggestion.
+Milestones
+• M0 Setup: repo, Supabase project, auth working, a build running on a real iPhone.
+• M1 Log and items bank, with row-level security tested.
+• M2 Versions and editor: toggles, reorder, text override.
+• M3 Public page, link, QR code, view count.
+• M4 TestFlight with about 10 job seekers. Fix what confuses them.
+• M5 AI features.
+• M6 App Store submission: privacy policy URL, account deletion, screenshots, review notes.
+Done means
+A new user can create an account, log five activities, build a version in under two minutes, share a link that opens on any phone without login, and see how many times it was viewed.
+Out of scope for v1
+Professional network, employer accounts, messaging, payments, Android release, free-form layout, cover letters, and parsing uploaded resumes.
+First prompts for your AI tool
+Work one milestone per session. Ask the tool to run the app and fix errors before moving on, and commit after each step.
+1. Set up a Turborepo monorepo with an Expo (TypeScript, Expo Router) app, a Next.js app, and a shared resume-core package. Connect Supabase auth with Sign in with Apple and email.
+2. Create the Supabase schema from the Data model section, with migrations and row-level security so each user only accesses their own rows. Add seed-free TypeScript types to resume-core.
+3. Build the Log screen and Items bank from the Screens section. Quick capture must save in one tap after typing.
+4. Build the Editor screen: version switcher, tap-to-edit text, per-item visibility toggle, drag reorder, selected-item toolbar, and the From your log suggestions strip. Per-version wording changes go in text_override.

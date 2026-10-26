@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+const base = process.env.PREVIEW_URL || 'http://127.0.0.1:3000';
+const visible = await fetch(`${base}/demo`);
+assert.equal(visible.status, 200);
+const html = await visible.text();
+assert.match(html, /Alex Morgan/);
+assert.match(html, /alex@example.com/);
+assert.match(html, /noindex/);
+assert.match(html, /Fictional example/);
+const hidden = await fetch(`${base}/demo?contact=hidden`);
+assert.equal(hidden.status, 200);
+const privateHtml = await hidden.text();
+assert.ok(!privateHtml.includes('alex@example.com'), 'Hidden contact must not occur in HTML or serialized RSC data');
+assert.ok(!privateHtml.includes('Perth, Australia'));
+assert.equal((await fetch(`${base}/alex/operations`)).status, 404);
+console.log('PASS: SSR sample, noindex, hidden contact absent from response, unpublished route 404.');

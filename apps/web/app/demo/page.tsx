@@ -1,0 +1,10 @@
+import Link from 'next/link';
+import { demoState, resolveVersion } from '@resume/core';
+import { PrintButton } from './print-button';
+export const dynamic = 'force-dynamic';
+export default async function Demo({ searchParams }: { searchParams: Promise<{ contact?: string }> }) {
+  const { contact } = await searchParams;
+  const state = demoState(); state.versions[0].hideContact = contact === 'hidden';
+  const resume = resolveVersion(state, 'v1');
+  return <><header className="toolbar"><Link className="wordmark" href="/">r. <span>Resume App</span></Link><span className="badge">FICTIONAL EXAMPLE</span><PrintButton/></header><main className="preview"><div className="preview-note"><div><p className="eyebrow">CLEAN TEMPLATE · LOCAL PREVIEW</p><p>Nothing is published. This sample is separate from your Expo edits.</p></div><Link href={resume.contact ? '/demo?contact=hidden' : '/demo'}>{resume.contact ? 'Preview without contact' : 'Show sample contact'}</Link></div><article className="resume"><div className="accent"/><header><h1>{resume.fullName}</h1><p className="headline">{resume.headline}</p>{resume.contact && <p className="contact">{resume.contact.location} <span>·</span> <a href={`mailto:${resume.contact.email}`}>{resume.contact.email}</a></p>}</header><section><h2>Profile</h2><p>{resume.summary}</p></section><section><h2>Experience</h2>{resume.roles.map(role => <div className="role" key={role.id}><div className="role-heading"><h3>{role.title}</h3><span>{role.start} — {role.end}</span></div><p className="employer">{role.employer}</p><ul>{role.achievements.map(a => <li key={a.id}>{a.text}{a.metric && <strong>{a.metric}</strong>}</li>)}</ul></div>)}</section><section><h2>Skills</h2><div className="skills">{resume.skills.map(skill => <span key={skill}>{skill}</span>)}</div></section><section><h2>Education</h2>{resume.education.map(line => <p key={line}>{line}</p>)}</section><footer>Fictional example · Resume App local prototype</footer></article><p className="privacy-note">No authentication, public links, QR codes or view tracking are connected. Browser printing provides Save as PDF.</p></main></>;
+}

@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+.next/
+.env*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+.pnpm-store/
+# Framework-generated type declarations
+apps/web/next-env.d.ts
+apps/mobile/expo-env.d.ts

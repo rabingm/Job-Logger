@@ -1,0 +1,14 @@
+{
+  "name": "resume-app", "private": true, "packageManager": "pnpm@11.25.0",
+  "engines": { "node": "^22.13.0 || ^24.3.0 || >=26.0.0" },
+  "scripts": {
+    "mobile": "pnpm --filter @resume/mobile start",
+    "mobile:web": "pnpm --filter @resume/mobile web",
+    "web": "pnpm --filter @resume/web dev",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @resume/core test",
+    "build:web": "pnpm --filter @resume/web build",
+    "build:mobile": "pnpm --filter @resume/mobile export"
+  },
+  "devDependencies": { "typescript": "~5.9.3", "tsx": "^4.20.6", "@types/node": "^24.0.0" }
+}
