@@ -3,3 +3,12 @@
 @media (max-width: 600px) { .toolbar { gap: 12px; padding: 16px; } .toolbar .button { width: 100%; text-align: center; } .preview { padding: 0 12px; margin-top: 24px; } .preview-note { display: block; padding: 0 8px; } .resume { padding: 30px 24px; } h1 { font-size: 32px; } .headline { font-size: 15px; } .role-heading { display: block; } }
 @media (prefers-color-scheme: dark) { :root { --bg:#15251f; --paper:#20332b; --ink:#d1ead9; --text:#e0e9df; --muted:#b0c5b8; --line:#3c5346; --chip:#304a3b; } }
 @media print { :root { color-scheme:light; --bg:#fff; --paper:#fff; --ink:#193e34; --text:#24382d; --muted:#4e6256; --line:#dfe5db; --chip:#fff; } @page { size:A4; margin:16mm; } body { background:#fff; } .toolbar,.preview-note,.privacy-note { display:none; } .preview { max-width:none; padding:0; margin:0; } .resume { border:0; box-shadow:none; padding:0; } .role,li { break-inside:avoid; } h2,h3 { break-after:avoid; } a { text-decoration:none; } .resume footer { margin-top:20px; } }
+
+.template-modern-split, .template-soft-accent { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); gap: 0 26px; }
+.template-modern-split .resume-heading, .template-soft-accent .resume-heading { grid-column: 2; }
+.template-modern-split .resume-foundation, .template-soft-accent .resume-foundation { grid-column: 1; grid-row: 1 / span 2; padding: 14px; overflow-wrap: anywhere; border-right: 1px solid var(--line); }
+.template-soft-accent .resume-foundation { background: #ddecE8; color: #173a35; }
+.template-soft-accent .resume-foundation h2, .template-soft-accent .resume-foundation .contact { color: #173a35; }
+.template-modern-split .resume-experience, .template-soft-accent .resume-experience { grid-column: 2; min-width: 0; }
+.preview-note nav { display: flex; flex-wrap: wrap; gap: 12px; }
+@media (max-width: 520px) { .template-modern-split, .template-soft-accent { gap: 0 12px; padding: 20px 12px; } .resume-heading h1 { font-size: 28px; } }

@@ -7,19 +7,19 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => {
   return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 }, 'Use a valid date (YYYY-MM-DD)');
 const roleSchema = z.object({ id, ownerId: id, employer: short, title: short, start: short, end: short });
-const activitySchema = z.object({ id, ownerId: id, roleId: id.nullable(), text: z.string().trim().min(1).max(3000), metric: short, happenedOn: date, tags: z.array(short).max(20), archived: z.boolean() });
-const profileSchema = z.object({ id, fullName: short, headline: short, email: z.union([z.literal(''), z.email()]), location: short, education: z.array(short), skills: z.array(short) });
+const activitySchema = z.object({ id, ownerId: id, roleId: id.nullable(), text: z.string().trim().min(1).max(3000), metric: short, happenedOn: date, tags: z.array(short).max(20), tools: z.array(short).max(30), archived: z.boolean() });
+const profileSchema = z.object({ id, fullName: short, headline: short, email: z.union([z.literal(''), z.email()]), location: short, phone: short, education: z.array(short), skills: z.array(short) });
 const selectionSchema = z.object({ id, visible: z.boolean() });
 const versionSchema = z.object({
-  id, ownerId: id, name: z.string().trim().min(1).max(100), template: z.literal('clean'),
+  id, ownerId: id, name: z.string().trim().min(1).max(100), template: z.enum(['clean', 'modern-split', 'soft-accent']),
   headline: short.nullable(), summary: z.string().max(3000), hideContact: z.boolean(),
   items: z.array(z.object({ activityId: id, visible: z.boolean(), textOverride: z.string().max(3000).nullable() })),
   sections: z.object({ roles: z.array(selectionSchema), education: z.boolean(), skills: z.boolean() })
 });
 export const stateSchema = z.object({
-  schemaVersion: z.literal(1), onboarded: z.boolean(), profile: profileSchema,
+  schemaVersion: z.literal(2), defaultRoleId: id.nullable(), onboarded: z.boolean(), profile: profileSchema,
   roles: z.array(roleSchema), activities: z.array(activitySchema), versions: z.array(versionSchema),
-  captureDraft: z.object({ text: z.string(), metric: z.string(), date: z.string(), tags: z.string(), roleId: z.string() })
+  captureDraft: z.object({ text: z.string(), metric: z.string(), date: z.string(), tags: z.string(), tools: z.string(), roleId: z.string() })
 });
 export type State = z.infer<typeof stateSchema>;
 export type Activity = z.infer<typeof activitySchema>;
@@ -27,15 +27,36 @@ export type Version = z.infer<typeof versionSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type Role = z.infer<typeof roleSchema>;
 export type ResolvedResume = {
-  schemaVersion: 1; template: 'clean'; fullName: string; headline: string; summary: string;
-  contact: { email: string; location: string } | null;
+  schemaVersion: 1; template: Version['template']; fullName: string; headline: string; summary: string;
+  contact: { email: string; location: string; phone: string } | null;
   roles: (Omit<Role, 'ownerId'> & { achievements: { id: string; text: string; metric: string }[] })[];
   otherAchievements: { id: string; text: string; metric: string }[];
   education: string[]; skills: string[];
 };
 
+export const templates = { clean: 'Clean', 'modern-split': 'Modern Split', 'soft-accent': 'Soft Accent' } as const;
+export const isCurrentRole = (role: Role) => !role.end.trim() || role.end.trim().toLowerCase() === 'present';
+export function defaultCurrentRole(state: Pick<State, 'roles' | 'defaultRoleId'>): string | null {
+  return state.roles.find(r => r.id === state.defaultRoleId && isCurrentRole(r))?.id ?? state.roles.find(isCurrentRole)?.id ?? null;
+}
+export function groupAchievements(activities: Activity[], roles: Role[]) {
+  return [...roles.map(role => ({ id: role.id, label: `${role.title} · ${role.employer}`, activities: activities.filter(a => a.roleId === role.id) })),
+    { id: 'unassigned', label: 'Independent achievements', activities: activities.filter(a => a.roleId === null) }].filter(g => g.activities.length);
+}
+export const toolOptions = (state: State) => [...new Set(state.activities.flatMap(a => a.tools))].sort();
+export const parseTools = (value: string) => [...new Set(value.split(',').map(t => t.trim()).filter(Boolean))];
+// Copy before migration; never overwrite storage during load. Unsupported versions fail validation.
+export function migrateState(input: unknown): unknown {
+  if (!input || typeof input !== 'object' || !('schemaVersion' in input) || input.schemaVersion !== 1) return input;
+  const old = JSON.parse(JSON.stringify(input));
+  return { ...old, schemaVersion: 2, defaultRoleId: old.roles?.find((r: Role) => isCurrentRole(r))?.id ?? null,
+    profile: { ...old.profile, phone: '' }, activities: old.activities?.map((a: Activity) => ({ ...a, tools: [] })),
+    captureDraft: { ...old.captureDraft, tools: '' } };
+}
+
 export function validateState(input: unknown): State {
-  const state = stateSchema.parse(input);
+  const state = stateSchema.parse(migrateState(input));
+  state.defaultRoleId = defaultCurrentRole(state);
   const unique = (values: string[]) => { if (new Set(values).size !== values.length) throw new Error('Duplicate identifiers'); };
   unique(state.activities.map(a => a.id)); unique(state.roles.map(r => r.id)); unique(state.versions.map(v => v.id));
   for (const role of state.roles) if (role.ownerId !== state.profile.id) throw new Error('Role ownership mismatch');
@@ -64,7 +85,7 @@ export function resolveVersion(input: State, versionId: string): ResolvedResume 
   return {
     schemaVersion: 1, template: version.template, fullName: state.profile.fullName,
     headline: version.headline ?? state.profile.headline, summary: version.summary,
-    contact: version.hideContact ? null : { email: state.profile.email, location: state.profile.location },
+    contact: version.hideContact ? null : { email: state.profile.email, location: state.profile.location, phone: state.profile.phone },
     roles: version.sections.roles.filter(r => r.visible).map(selection => {
       const { ownerId: _, ...role } = state.roles.find(r => r.id === selection.id)!;
       return { ...role, achievements: selected.filter(a => a.roleId === role.id).map(stripRole) };
@@ -117,7 +138,7 @@ export function demoState(): State {
       summary: 'Thoughtful operations professional who brings structure to complex work. Experienced in improving everyday processes and helping teams deliver together.', hideContact: false,
       items: ['a1', 'a3', 'a4'].map(activityId => ({ activityId, visible: true, textOverride: null })),
       sections: { roles: [{ id: 'role-1', visible: true }, { id: 'role-2', visible: true }], education: true, skills: true } }],
-    captureDraft: { text: '', metric: '', date: new Date().toLocaleDateString('en-CA'), tags: '', roleId: 'role-1' }
+    captureDraft: { text: '', metric: '', date: new Date().toLocaleDateString('en-CA'), tags: '', roleId: '@default' }
   });
 }
 
